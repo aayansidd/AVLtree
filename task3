@@ -254,26 +254,26 @@ int main() {
     int keys[] = {30, 20, 40, 10, 25, 50, 5};
     for (int k : keys) root = insertAVL(root, k);
 
-    cout << "=== Initial AVL tree (30, 20, 40, 10, 25, 50, 5) ===" << endl;
+    cout << "Initial AVL tree (30, 20, 40, 10, 25, 50, 5)" << endl;
     showResult(root);
     printBalances(root);
 
     // Delete 50: node 30 becomes unbalanced (balance 2), its left child 20 has balance 1 -> L-L, right rotation at 30
-    cout << "\n=== Delete 50 (unbalanced ancestor 30, right rotation) ===" << endl;
+    cout << "\nDelete 50 (unbalanced ancestor 30, right rotation)" << endl;
     cout << "Expected preorder: 20 10 5 30 25 40" << endl;
     root = deleteAVL(root, 50);
     showResult(root);
     printBalances(root);
 
     //  Delete 40: every node stays within -1..1, so no rotation is needed
-    cout << "\n=== Delete 40 (no rotation needed) ===" << endl;
+    cout << "\nDelete 40 (no rotation needed)" << endl;
     cout << "Expected preorder: 20 10 5 30 25" << endl;
     root = deleteAVL(root, 40);
     showResult(root);
     printBalances(root);
 
     //  Missing key: tree must stay unchanged
-    cout << "\n=== Delete missing key 99 ===" << endl;
+    cout << "\n Delete missing key 99 " << endl;
     cout << "Expected preorder: 20 10 5 30 25 (unchanged)" << endl;
     root = deleteAVL(root, 99);
     showResult(root);
@@ -282,12 +282,12 @@ int main() {
     root = nullptr;
 
     // Empty tree
-    cout << "\n=== Delete from empty tree ===" << endl;
+    cout << "\n Delete from empty tree " << endl;
     root = deleteAVL(root, 10);
     cout << "Result is nullptr? " << (root == nullptr ? "Yes" : "No") << endl;
 
     // Tree with one node
-    cout << "\n=== Delete the only node ===" << endl;
+    cout << "\n Delete the only node" << endl;
     root = insertAVL(root, 42);
     root = deleteAVL(root, 42);
     cout << "Result is nullptr? " << (root == nullptr ? "Yes" : "No") << endl;
@@ -306,7 +306,7 @@ int main() {
     root = nullptr;
 
     // L-R case on deletion (left child has balance -1): delete 40 from 30, 10, 40, 20
-    cout << "\n=== Extra: L-R on deletion, delete 40 ===" << endl;
+    cout << "\n Extra: L-R on deletion, delete 40 " << endl;
     cout << "Expected preorder: 20 10 30" << endl;
     int keys3[] = {30, 10, 40, 20};
     for (int k : keys3) root = insertAVL(root, k);
@@ -316,7 +316,7 @@ int main() {
     root = nullptr;
 
     //  R-L case on deletion (right child has balance 1): delete 5 from 10, 5, 30, 20
-    cout << "\n=== Extra: R-L on deletion, delete 5 ===" << endl;
+    cout << "\n Extra: R-L on deletion, delete 5 " << endl;
     cout << "Expected preorder: 20 10 30" << endl;
     int keys4[] = {10, 5, 30, 20};
     for (int k : keys4) root = insertAVL(root, k);
