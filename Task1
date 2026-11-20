@@ -1,0 +1,161 @@
+// Name: Aayan
+// Registration No: 570014
+// Section: BSCS-15D
+// Lab 10 - Task 1: BST deletion
+
+#include <iostream>
+using namespace std;
+
+class Node {
+public:
+    int key;
+    Node* left;
+    Node* right;
+
+    Node(int x) {
+        key = x;
+        left = nullptr;
+        right = nullptr;
+    }
+};
+
+Node* successor(Node* root) {
+    Node* curr = root->right;
+    while (curr->left != nullptr) {
+        curr = curr->left;
+    }
+    return curr;
+}
+
+Node* addNode(Node* root, int value) {
+    if (root == nullptr) {
+        return new Node(value);
+    }
+
+    if (value < root->key) {
+        root->left = addNode(root->left, value);
+    } else if (value > root->key) {
+        root->right = addNode(root->right, value);
+    }
+    // value == root->key: duplicate, ignore
+
+    return root;
+}
+
+Node* deleteBST(Node* root, int value) {
+    //No child case
+    if (root == nullptr) {
+        return nullptr;
+    }
+
+    if (value < root->key) {
+        root->left = deleteBST(root->left, value);
+    } else if (value > root->key) {
+        root->right = deleteBST(root->right, value);
+    }
+
+    if (root->left == nullptr && root->right == nullptr && root->key == value) {
+        delete root;
+        return nullptr;
+    }
+
+    //One child case
+    if (root->key == value){
+        if (root->left != nullptr && root->right == nullptr) {
+        Node* child = root->left;
+        delete root;
+        return child;
+        }
+
+        if (root->right != nullptr && root->left == nullptr) {
+            Node* child = root->right;
+            delete root;
+            return child;
+        }
+
+        //Two child case
+        Node* su = successor(root);
+        root->key = su->key;
+        root->right = deleteBST(root->right, su->key);
+    }
+
+    return root;
+
+}
+
+
+void inorder(Node* root) {
+    if (root == nullptr) return;
+    inorder(root->left);
+    cout << root->key << " ";
+    inorder(root->right);
+}
+
+// Releases every remaining node (postorder) before the program exits
+void freeTree(Node* root) {
+    if (root == nullptr) return;
+    freeTree(root->left);
+    freeTree(root->right);
+    delete root;
+}
+
+
+int main() {
+    Node* root = nullptr;
+    int keys[] = {50, 30, 70, 20, 40, 60, 80, 65};
+    for (int k : keys) root = addNode(root, k);
+
+    cout << "Inorder: ";
+    inorder(root);
+    cout << endl;
+
+    // ---- Delete 20: leaf (no child) case ----
+    cout << "\n=== Delete 20 (leaf case) ===" << endl;
+    cout << "Predicted inorder: 30 40 50 60 65 70 80" << endl;
+    root = deleteBST(root, 20);
+    cout << "Actual inorder:    ";
+    inorder(root);
+    cout << endl;
+
+    // ---- Delete 60: one child case (only right child 65) ----
+    cout << "\n=== Delete 60 (one child case) ===" << endl;
+    cout << "Predicted inorder: 30 40 50 65 70 80" << endl;
+    root = deleteBST(root, 60);
+    cout << "Actual inorder:    ";
+    inorder(root);
+    cout << endl;
+
+    // ---- Delete 50: two child case (successor is 65) ----
+    cout << "\n=== Delete 50 (two child case, successor 65) ===" << endl;
+    cout << "Predicted inorder: 30 40 65 70 80" << endl;
+    root = deleteBST(root, 50);
+    cout << "Actual inorder:    ";
+    inorder(root);
+    cout << endl;
+
+    // ---- Missing key: tree must stay unchanged ----
+    cout << "\n Delete missing key 99 " << endl;
+    cout << "Predicted inorder: 30 40 65 70 80 (unchanged)" << endl;
+    root = deleteBST(root, 99);
+    cout << "Actual inorder:    ";
+    inorder(root);
+    cout << endl;
+
+    // ---- Empty tree ----
+    cout << "\n Delete from empty tree " << endl;
+    Node* emptyTree = nullptr;
+    emptyTree = deleteBST(emptyTree, 10);
+    cout << "Result is nullptr? " << (emptyTree == nullptr ? "Yes" : "No") << endl;
+
+    // ---- Only node in the tree ----
+    cout << "\nDelete the only node" << endl;
+    Node* single = addNode(nullptr, 42);
+    single = deleteBST(single, 42);
+    cout << "Result is nullptr? " << (single == nullptr ? "Yes" : "No") << endl;
+
+    // Release all remaining nodes before exit
+    freeTree(root);
+    root = nullptr;
+
+    return 0;
+}
