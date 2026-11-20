@@ -1,0 +1,195 @@
+// Name: Aayan
+// Registration No: 570014
+// Section: BSCS-15D
+
+#include <bits/stdc++.h>
+using namespace std;
+
+
+struct Node {
+    int key;
+    Node* left;
+    Node* right;
+    int height;
+
+};
+
+int height(Node* root){
+    if (root == nullptr)
+        return 0;
+    int leftHeight = height(root->left);
+    int rightHeight = height(root->right);
+
+    return 1 + max(leftHeight, rightHeight);
+}
+
+
+Node* rightRotate(Node* node) {
+    Node* x = node->left;
+    Node* temp = x->right;
+
+    x->right = node;
+    node->left = temp;
+
+
+    node->height = 1 + max(height(node->left), height(node->right));
+    x->height = 1 + max(height(x->left), height(x->right));
+    return x;
+}
+
+Node* leftRotate(Node* node) {
+    Node* x = node->right;
+    Node* temp = x->left;
+
+    x->left = node;
+    node->right = temp;
+
+
+    node->height = 1 + max(height(node->left), height(node->right));
+    x->height = 1 + max(height(x->left), height(x->right));
+    return x;
+}
+
+int getBalance(Node* node) {
+    if (node == nullptr)
+        return 0;
+
+    return height(node->left) - height(node->right);
+}
+
+Node* insertAVL(Node* root, int val) {
+    if (root == nullptr) {
+        Node* newNode = new Node();
+        newNode->key = val;
+        newNode->left = nullptr;
+        newNode->right = nullptr;
+        newNode->height = 1;
+        return newNode;
+    }
+
+    if (val < root->key) {
+        root->left = insertAVL(root->left, val);
+    } else if (val > root->key) {
+        root->right = insertAVL(root->right, val);
+    }else {
+        return root;
+    }
+
+    root->height = 1 + max(height(root->left), height(root->right));
+
+    int bal = getBalance(root);
+
+    //L-L case
+    if (bal > 1 && val < root->left->key) {
+        return rightRotate(root);
+    }
+
+    //R-R case
+    if (bal < -1 && val > root->right->key) {
+        return leftRotate(root);
+    }
+
+    //L-R case
+    if (bal > 1 && val > root->left->key) {
+
+        root->left = leftRotate(root->left);
+        return rightRotate(root);
+    }
+
+    //R-L case
+    if (bal < -1 && val < root->right->key) {
+
+        root->right = rightRotate(root->right);
+        return leftRotate(root);
+    }
+    return root;
+}
+
+void preorder(Node* root) {
+    if (root == nullptr) return;
+    cout << root->key << " ";
+    preorder(root->left);
+    preorder(root->right);
+}
+
+void inorder(Node* root) {
+    if (root == nullptr) return;
+    inorder(root->left);
+    cout << root->key << " ";
+    inorder(root->right);
+}
+
+// Sideways print: right subtree on top, left subtree at the bottom
+void printTree(Node* root, int space = 0) {
+    if (root == nullptr) return;
+
+    const int GAP = 6;
+    space += GAP;
+
+    printTree(root->right, space);
+
+    cout << endl;
+    for (int i = GAP; i < space; i++) cout << " ";
+    cout << root->key << endl;
+
+    printTree(root->left, space);
+}
+
+// Checks that every node has a balance factor of -1, 0 or 1
+bool isBalanced(Node* root) {
+    if (root == nullptr) return true;
+    int bal = getBalance(root);
+    if (bal < -1 || bal > 1) return false;
+    return isBalanced(root->left) && isBalanced(root->right);
+}
+
+// Prints key, height and balance factor of every node (inorder)
+void printBalances(Node* root) {
+    if (root == nullptr) return;
+    printBalances(root->left);
+    cout << "  key " << root->key << ", height " << root->height
+         << ", balance " << getBalance(root) << endl;
+    printBalances(root->right);
+}
+
+// Releases every remaining node (postorder) before the program exits
+void freeTree(Node* root) {
+    if (root == nullptr) return;
+    freeTree(root->left);
+    freeTree(root->right);
+    delete root;
+}
+
+// Inserts the sequence into a fresh AVL tree and prints the results
+void runTest(const char* label, const char* expected, vector<int> seq) {
+    cout << "=== Sequence " << label << ": ";
+    for (int v : seq) cout << v << " ";
+    cout << "===" << endl;
+    cout << "Expected: " << expected << endl;
+
+    Node* root = nullptr;
+    for (int v : seq) root = insertAVL(root, v);
+
+    cout << "Preorder: ";
+    preorder(root);
+    cout << endl;
+    cout << "Inorder:  ";
+    inorder(root);
+    cout << endl;
+    cout << "Node heights and balance factors:" << endl;
+    printBalances(root);
+    cout << "All nodes balanced? " << (isBalanced(root) ? "Yes" : "No") << endl;
+    cout << endl;
+
+    freeTree(root);
+}
+
+
+int main() {
+    runTest("(a)", "LL imbalance at 30 -> right rotation at 30", {30, 20, 10});
+    runTest("(b)", "RR imbalance at 10 -> left rotation at 10", {10, 20, 30});
+    runTest("(c)", "LR imbalance at 30 -> left rotation at 10, then right rotation at 30", {30, 10, 20});
+    runTest("(d)", "RL imbalance at 10 -> right rotation at 30, then left rotation at 10", {10, 30, 20});
+
+    return 0;
+}
