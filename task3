@@ -1,0 +1,331 @@
+// Name: Aayan
+// Registration No: <your reg no>
+// Section: <your section>
+// Lab 10 - Task 3: AVL insertion and deletion
+
+#include <bits/stdc++.h>
+using namespace std;
+
+
+struct Node {
+    int key;
+    Node* left;
+    Node* right;
+    int height;
+
+};
+
+int height(Node* root){
+    if (root == nullptr)
+        return 0;
+    int leftHeight = height(root->left);
+    int rightHeight = height(root->right);
+
+    return 1 + max(leftHeight, rightHeight);
+}
+
+
+Node* rightRotate(Node* node) {
+    Node* x = node->left;
+    Node* temp = x->right;
+
+    x->right = node;
+    node->left = temp;
+
+
+    node->height = 1 + max(height(node->left), height(node->right));
+    x->height = 1 + max(height(x->left), height(x->right));
+    return x;
+}
+
+Node* leftRotate(Node* node) {
+    Node* x = node->right;
+    Node* temp = x->left;
+
+    x->left = node;
+    node->right = temp;
+
+
+    node->height = 1 + max(height(node->left), height(node->right));
+    x->height = 1 + max(height(x->left), height(x->right));
+    return x;
+}
+
+int getBalance(Node* node) {
+    if (node == nullptr)
+        return 0;
+
+    return height(node->left) - height(node->right);
+}
+
+Node* insertAVL(Node* root, int value) {
+    if (root == nullptr) {
+        Node* newNode = new Node();
+        newNode->key = value;
+        newNode->left = nullptr;
+        newNode->right = nullptr;
+        newNode->height = 1;
+        return newNode;
+    }
+
+    if  (value < root->key) {
+        root->left = insertAVL(root->left, value);
+    } else if ( value > root->key) {
+        root->right = insertAVL(root->right, value);
+    }else {
+        return root;
+    }
+
+    root->height = 1 + max(height(root->left), height(root->right));
+
+    int bal = getBalance(root);
+
+    //L-L case
+    if (bal > 1 && value < root->left->key) {
+        return rightRotate(root);
+    }
+
+    //R-R case
+    if (bal < -1 && value > root->right->key) {
+        return leftRotate(root);
+    }
+
+    //L-R case
+    if (bal > 1 && value > root->left->key) {
+
+        root->left = leftRotate(root->left);
+        return rightRotate(root);
+    }
+
+    //R-L case
+    if (bal < -1 && value < root->right->key) {
+
+        root->right = rightRotate(root->right);
+        return leftRotate(root);
+    }
+    return root;
+}
+
+Node* successor(Node* root) {
+    Node* curr = root->right;
+    while (curr->left != nullptr) {
+        curr = curr->left;
+    }
+    return curr;
+}
+
+Node* deleteAVL(Node* root, int value) {
+    //No child case
+    if (root == nullptr) {
+        return nullptr;
+    }
+
+    if  (value < root->key) {
+        root->left = deleteAVL(root->left, value);
+    } else if ( value > root->key) {
+        root->right = deleteAVL(root->right, value);
+    }
+
+    if (root->left == nullptr && root->right == nullptr && root->key == value) {
+        delete root;
+        return nullptr;
+    }
+
+    //One child case
+    if (root->key == value){
+        if (root->left != nullptr && root->right == nullptr) {
+            Node* child = root->left;
+            delete root;
+            return child;
+        }
+
+        if (root->right != nullptr && root->left == nullptr) {
+            Node* child = root->right;
+            delete root;
+            return child;
+        }
+
+        //Two child case
+        Node* su = successor(root);
+        root->key = su->key;
+        root->right = deleteAVL(root->right, su->key);
+
+
+    }
+    root->height = 1 + max(height(root->left), height(root->right));
+    int bal = getBalance(root);
+    //L-L case
+     if (bal > 1 && getBalance(root->left) >= 0) {
+         return rightRotate(root);
+     }
+
+     //R-R case
+     if (bal < -1 && getBalance(root->right) <= 0) {
+         return leftRotate(root);
+     }
+
+     //L-R case
+     if (bal > 1 && getBalance(root->left) < 0) {
+
+         root->left = leftRotate(root->left);
+         return rightRotate(root);
+     }
+
+     //R-L case
+     if (bal < -1 && getBalance(root->right) > 0) {
+
+         root->right = rightRotate(root->right);
+         return leftRotate(root);
+     }
+    return root;
+}
+
+
+void preorder(Node* root) {
+    if (root == nullptr) return;
+    cout << root->key << " ";
+    preorder(root->left);
+    preorder(root->right);
+}
+
+void inorder(Node* root) {
+    if (root == nullptr) return;
+    inorder(root->left);
+    cout << root->key << " ";
+    inorder(root->right);
+}
+
+// Sideways print: right subtree on top, left subtree at the bottom
+void printTree(Node* root, int space = 0) {
+    if (root == nullptr) return;
+
+    const int GAP = 6;
+    space += GAP;
+
+    printTree(root->right, space);
+
+    cout << endl;
+    for (int i = GAP; i < space; i++) cout << " ";
+    cout << root->key << endl;
+
+    printTree(root->left, space);
+}
+
+// Checks that every node has a balance factor of -1, 0 or 1
+bool isBalanced(Node* root) {
+    if (root == nullptr) return true;
+    int bal = getBalance(root);
+    if (bal < -1 || bal > 1) return false;
+    return isBalanced(root->left) && isBalanced(root->right);
+}
+
+// Prints key, height and balance factor of every node (inorder)
+void printBalances(Node* root) {
+    if (root == nullptr) return;
+    printBalances(root->left);
+    cout << "  key " << root->key << ", height " << root->height
+         << ", balance " << getBalance(root) << endl;
+    printBalances(root->right);
+}
+
+// Releases every remaining node (postorder) before the program exits
+void freeTree(Node* root) {
+    if (root == nullptr) return;
+    freeTree(root->left);
+    freeTree(root->right);
+    delete root;
+}
+
+// Prints preorder, inorder and whether the whole tree is a valid AVL tree
+void showResult(Node* root) {
+    cout << "Preorder: ";
+    preorder(root);
+    cout << endl;
+    cout << "Inorder:  ";
+    inorder(root);
+    cout << endl;
+    cout << "All nodes balanced? " << (isBalanced(root) ? "Yes" : "No") << endl;
+}
+
+
+int main() {
+    // Lab test: build the tree
+    Node* root = nullptr;
+    int keys[] = {30, 20, 40, 10, 25, 50, 5};
+    for (int k : keys) root = insertAVL(root, k);
+
+    cout << "=== Initial AVL tree (30, 20, 40, 10, 25, 50, 5) ===" << endl;
+    showResult(root);
+    printBalances(root);
+
+    // Delete 50: node 30 becomes unbalanced (balance 2), its left child 20 has balance 1 -> L-L, right rotation at 30
+    cout << "\n=== Delete 50 (unbalanced ancestor 30, right rotation) ===" << endl;
+    cout << "Expected preorder: 20 10 5 30 25 40" << endl;
+    root = deleteAVL(root, 50);
+    showResult(root);
+    printBalances(root);
+
+    //  Delete 40: every node stays within -1..1, so no rotation is needed
+    cout << "\n=== Delete 40 (no rotation needed) ===" << endl;
+    cout << "Expected preorder: 20 10 5 30 25" << endl;
+    root = deleteAVL(root, 40);
+    showResult(root);
+    printBalances(root);
+
+    //  Missing key: tree must stay unchanged
+    cout << "\n=== Delete missing key 99 ===" << endl;
+    cout << "Expected preorder: 20 10 5 30 25 (unchanged)" << endl;
+    root = deleteAVL(root, 99);
+    showResult(root);
+
+    freeTree(root);
+    root = nullptr;
+
+    // Empty tree
+    cout << "\n=== Delete from empty tree ===" << endl;
+    root = deleteAVL(root, 10);
+    cout << "Result is nullptr? " << (root == nullptr ? "Yes" : "No") << endl;
+
+    // Tree with one node
+    cout << "\n=== Delete the only node ===" << endl;
+    root = insertAVL(root, 42);
+    root = deleteAVL(root, 42);
+    cout << "Result is nullptr? " << (root == nullptr ? "Yes" : "No") << endl;
+
+    // Heavy child with balance factor 0: delete 30 from 20, 10, 30, 5, 15
+    // Node 20 has balance 2 and its left child 10 has balance 0 (children 5 and 15), so a single right rotation is enough
+    cout << "\n=== Heavy child balance 0: delete 30 ===" << endl;
+    int keys2[] = {20, 10, 30, 5, 15};
+    for (int k : keys2) root = insertAVL(root, k);
+    printBalances(root);
+    cout << "Expected preorder after: 10 5 20 15" << endl;
+    root = deleteAVL(root, 30);
+    showResult(root);
+    printBalances(root);
+    freeTree(root);
+    root = nullptr;
+
+    // L-R case on deletion (left child has balance -1): delete 40 from 30, 10, 40, 20
+    cout << "\n=== Extra: L-R on deletion, delete 40 ===" << endl;
+    cout << "Expected preorder: 20 10 30" << endl;
+    int keys3[] = {30, 10, 40, 20};
+    for (int k : keys3) root = insertAVL(root, k);
+    root = deleteAVL(root, 40);
+    showResult(root);
+    freeTree(root);
+    root = nullptr;
+
+    //  R-L case on deletion (right child has balance 1): delete 5 from 10, 5, 30, 20
+    cout << "\n=== Extra: R-L on deletion, delete 5 ===" << endl;
+    cout << "Expected preorder: 20 10 30" << endl;
+    int keys4[] = {10, 5, 30, 20};
+    for (int k : keys4) root = insertAVL(root, k);
+    root = deleteAVL(root, 5);
+    showResult(root);
+
+    // Release all remaining nodes before exit
+    freeTree(root);
+    root = nullptr;
+
+    return 0;
+}
